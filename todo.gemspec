@@ -20,5 +20,7 @@ spec = Gem::Specification.new do |s|
   s.add_development_dependency('rdoc')
   s.add_development_dependency('aruba')
   s.add_development_dependency('ronn')
+  s.add_development_dependency('mocha')
+  s.add_development_dependency('rainbow')
   s.add_runtime_dependency('gli','2.12.2')
 end

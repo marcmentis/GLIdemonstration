@@ -1,15 +1,18 @@
 #!/usr/bin/env ruby
 require 'gli'
-begin # XXX: Remove this begin/rescue before distributing your app
 require 'todo'
-rescue LoadError
-  STDERR.puts "In development, you need to use `bundle exec bin/todo` to run your app"
-  STDERR.puts "At install-time, RubyGems will make sure lib, etc. are in the load path"
-  STDERR.puts "Feel free to remove this message from bin/todo now"
-  exit 64
-end
+
+# begin # XXX: Remove this begin/rescue before distributing your app
+# require 'todo'
+# rescue LoadError
+#   STDERR.puts "In development, you need to use `bundle exec bin/todo` to run your app"
+#   STDERR.puts "At install-time, RubyGems will make sure lib, etc. are in the load path"
+#   STDERR.puts "Feel free to remove this message from bin/todo now"
+#   exit 64
+# end
 
 include GLI::App
+include Todo
 
 program_desc 'Add new tasks, list all tasks and mark completed'
 
@@ -19,26 +22,20 @@ subcommand_option_handling :normal
 arguments :strict
 
 # READ A CONFIGURATION.YAML FILE
-defaults = YAML.load_file('config.rc.yaml')
+defaults = YAML.load_file('/Users/marcmentis/projects/awesome_cl_scripts/todo/config.rc.yaml')
 # Working out how to get symbols from nested hash.  MUST BE BETTER WAY
-puts "defaults: #{defaults}"
-puts "defaults[:filename]: #{defaults[:filename]}"
-puts "defaults['commands']: #{defaults['commands']}"
-puts "defaults['commands'][:list]: #{defaults['commands'][:list]}"
-puts "defaults['commands'][:list][:s] #{defaults['commands'][:list][:s]}"
-
-def read_todo(line)
-  line.chomp.split(/,/)
-end
-def write_todo(file,name,created=Time.now,completed='')
-  file.puts("#{name},#{created},#{completed}")
-end
+  # puts "defaults: #{defaults}"
+  # puts "defaults[:filename]: #{defaults[:filename]}"
+  # puts "defaults['commands']: #{defaults['commands']}"
+  # puts "defaults['commands'][:list]: #{defaults['commands'][:list]}"
+  # puts "defaults['commands'][:list][:s] #{defaults['commands'][:list][:s]}"
 
 # desc 'Describe some switch here'
 # switch [:s,:switch]
 
 desc 'Path to the todo.txt file'
-default_value './todo.txt' 
+# default_value './todo.txt' 
+default_value "#{ENV['HOME']}/projects/awesome_cl_scripts/todo/todo.txt"
 arg_name 'Name of file containing list'
 flag [:f,:filename]
 
@@ -63,15 +60,9 @@ command :new do |c|
     # puts "--priority - #{options[:priority]}"
     # puts "args - #{args.join{','}}"
 
-    File.open(global_options[:f],'a') do |file|
-      args.each do |new_task|
-        write_todo(file,new_task)
-        puts "Task added."
-      end
+    Task.new_task(global_options[:f], args)
 
-    end
-
-
+    # new_task(global_options[:f], args)
      
     # If you have any errors, just raise them
     # raise "that command made no sense"
@@ -91,8 +82,8 @@ command [:list,:ls] do |c|
     File.open(global_options[:f],'r') do |file|
       counter = 1
       file.readlines.each do |line|
-        name,created,completed = read_todo(line)
-        printf("%3d - %s\n",counter,name)
+        name,created,completed = line.chomp.split(/,/)
+        printf("%3d - %s\n",counter,Rainbow(name).bright)
         printf("      Created   : %s\n",created)
         unless completed.nil?
           printf("      Completed : %s\n",completed)
@@ -103,15 +94,9 @@ command [:list,:ls] do |c|
 
     puts " Sort choice: #{options[:s]}"  # HOW TO READ OPTIONS
 
-    # todos = read_todos(global_options[:filename])
-    # if options[:s] == 'name'
-    #   todos = todos.sort { |a,b| a <=> b }
-    # end
-    # todoes.each do |todo|
-    #   puts todo
-    # end
   end
 end
+
 
 desc 'Task completed'
 arg_name 'Describe arguments to done here'
@@ -123,12 +108,12 @@ command :done do |c|
       File.open("#{TODO_FILE}.new",'w') do |new_file|
         counter = 1
         file.readlines.each do |line|
-          name,created,completed = read_todo(line)
+          name,created,completed = line.chomp.split(/,/)
           if task_number == counter
-            write_todo(new_file,name,created,Time.now)
+            new_file.puts("#{name},#{created},#{Time.now}")
             puts "Task #{counter} completed"
           else
-            write_todo(new_file,name,created,completed)
+            new_file.puts("#{name},#{created},#{completed}")
           end
           counter += 1
         end
