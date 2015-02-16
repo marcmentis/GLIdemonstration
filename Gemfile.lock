@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    todo (0.0.4)
+    todo (0.0.6)
       gli (= 2.12.2)
 
 GEM
