@@ -86,7 +86,7 @@ command [:list,:ls] do |c|
         printf("%3d - %s\n",counter,Rainbow(name).bright)
         printf("      Created   : %s\n",created)
         unless completed.nil?
-          printf("      Completed : %s\n",completed)
+          printf(Rainbow("      Completed : %s\n").green,Rainbow(completed).green)
         end
         counter += 1
       end
